@@ -21,7 +21,7 @@ const CLOUDS = [models.earth,
 // id, model, scale, rotation axis, rotation speed, model matrix
 const SCENE = [[0, EARTH, [1.0, 1.0, 1.0], [0, 1, 0], 0.00003,
                 glMatrix.mat4.create()],
-               [1, CLOUDS, [1.01, 1.01, 1.01], [0, 1, 0], 0.00005,
+               [1, CLOUDS, [1.1, 1.1, 1.1], [0, 1, 0], 0.00005,
                 glMatrix.mat4.create()]];
 
 // direction, diffuse color, specular color
@@ -240,6 +240,9 @@ function clean() {
 
 
 function resize() {
+  if (textureInfo_.value == textureInfoValue_) return; 
+  
+  
   if (typeof timeout_ !== "undefined") {
     clearTimeout(timeout_);
 
