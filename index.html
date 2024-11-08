@@ -1,0 +1,164 @@
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Blue Marble</title>
+    <link rel="icon" type="image/x-icon" href="../common-files/icon/gl.ico">
+    <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8">
+    <meta name="author" content="Oldrin Bărbulescu">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="../common-files/lib/gl-matrix/3.4.1/gl-matrix-min.js"></script>
+
+    <script src="../common-files/models/earth/earth.js"></script>
+
+    <script src="../common-files/script/camera.js"></script>
+    <script src="../common-files/script/mesh.js"></script>
+    <script src="../common-files/script/program.js"></script>
+    <script src="../common-files/script/texture.js"></script>
+    <script src="../common-files/script/util.js"></script>
+
+    <script src="shaders/shaders.js"></script>
+    <script src="shaders/shader-manager.js"></script>
+    <script src="main.js"></script>
+  </head>
+
+  <body onload="init()" onbeforeunload="clean()" onresize="resize()">
+    <noscript>
+      <h1>Computer Graphics</h1>
+      <h2>Blue Marble</h2>
+      <p class="error">
+        This site requires Javascript to work, please enable Javascript in your
+            browser or use a browser with Javascript support.
+      </p>
+    </noscript>
+
+    <div class="main">
+      <div class="left">
+        <h1>Computer Graphics</h1>
+        <h2>Blue Marble</h2>
+
+        <div class="top">
+          <div><h3>Parameters:</h3></div>
+
+          <div>
+            <!-- Reset button -->
+            <button type="button" name="reset-button" onclick="reset(event)">
+                Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="middle">
+          <div class="middle">
+            <!-- Camera -->
+            <div class="control">
+              <div>
+                <label for="cam-trans-z" class="title">
+                  Camera
+                </label>
+              </div>
+              <div>
+                <label for="cam-trans-z">Translate z</label>
+                <input type="range" min="0" max="100" value="50"
+                    id="cam-trans-z" name="camera"
+                    autocomplete="off" oninput="translateCamera(event)">
+              </div>
+              <div>
+                <label for="cam-rot-x">Rotate x</label>
+                <input type="range" min="30" max="70" value="50"
+                    id="cam-rot-x" name="camera"
+                    autocomplete="off" oninput="rotateCamera(event)">
+              </div>
+              <div>
+                <label for="cam-rot-y">Rotate y</label>
+                <input type="range" min="0" max="100" value="50"
+                    id="cam-rot-y" name="camera"
+                    autocomplete="off" oninput="rotateCamera(event)">
+              </div>
+              <div>
+                <label for="camera-fov">Field of view:</label>
+                <input type="text" id="camera-fov" name="camera" size="2"
+                      value="0" readonly="readonly" disabled="disabled">
+                <label for="camera-fov" class="unit">
+                  &deg;&nbsp;&nbsp;&nbsp;[scroll]
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="middle">
+            <!-- Light -->
+            <div class="control">
+              <div>
+                <label for="light-rot-y" class="title">
+                  Light
+                </label>
+              </div>
+              <div>
+                <label for="light-rot-y">Rotate y</label>
+                <input type="range" min="0" max="100" value="0"
+                    id="light-rot-y" name="light"
+                    autocomplete="off" oninput="rotateLight(event)">
+              </div>
+            </div>
+
+            <div class="hidden"></div>
+
+            <!-- Effects -->
+            <div class="control">
+              <div>
+                <label for="normal-mapping" class="title">
+                  Effects
+                </label>
+              </div>
+              <div>
+                <label for="normal-mapping">
+                  Normal mapping
+                </label>
+                <label for="normal-mapping" class="toggle">
+                  <input type="checkbox" id="normal-mapping"
+                      name="normal-mapping" oninput="normalMapping(event)">
+                  <span></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom">
+          <div class="bottom">
+            <!-- Texture size -->
+            <label for="tex-size">Texture size:</label>
+            <input type="text" id="tex-size" name="tex-size"
+                    size="11" value="0 x 0" readonly="readonly"
+                    disabled="disabled">
+             <label for="tex-size" class="unit">px</label>
+          </div>
+
+          <div class="bottom">
+            <!-- FPS counter -->
+            <label for="fps-counter">Frame rate:</label>
+            <input type="text" id="fps-counter" name="fps-counter"
+                    size="3" value="0" readonly="readonly"
+                    disabled="disabled">
+             <label for="fps-counter" class="unit">fps</label>
+          </div>
+        </div>
+
+        <!-- Display info area -->
+        <div class="info"><p class="info"></p></div>
+      </div>
+
+      <div class="right">
+        <div class="canvas">
+          <!-- Canvas -->
+          <canvas id="gl-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script src="../common-files/script/error-handling.js"></script>
+  </body>
+</html>
