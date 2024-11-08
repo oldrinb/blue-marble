@@ -2,12 +2,12 @@
 
 /**
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 6, 2024
+ * Last modified: Nov 7, 2024
  **/
 
 const shaders = {
   vertexShader: `#version 300 es  
-    precision mediump float;
+    precision highp float;
 
     in vec3 mPosition, mNormal, mTangent, mBitangent;
     in vec2 vTexCoord;
@@ -34,7 +34,7 @@ const shaders = {
 
 
   fragmentShader: `#version 300 es
-    precision mediump float;
+    precision highp float;
 
     const uint EARTH = 0u, CLOUDS = 1u;
     const float TRANSITION_THRES = 0.5f;
