@@ -3,7 +3,7 @@
 /**
  * Interface between the JavaScript 'main.js' file and GLSL shaders.
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 6, 2024
+ * Last modified: Nov 7, 2024
  **/
 
 function ShaderManager([gl]) {
@@ -27,6 +27,7 @@ function ShaderManager([gl]) {
 
         material_ = {
           id: program_.getUniformLocation("material.id"),
+          ambColor: program_.getUniformLocation("material.ambColor"),
           diffColor: program_.getUniformLocation("material.diffColor"),
           emissColor: program_.getUniformLocation("material.emissColor"),
           specColor: program_.getUniformLocation("material.specColor"),
@@ -36,6 +37,7 @@ function ShaderManager([gl]) {
 
         light_ = {
           eDirection: program_.getUniformLocation("light.eDirection"),
+          ambColor: program_.getUniformLocation("light.ambColor"),
           diffColor: program_.getUniformLocation("light.diffColor"),
           specColor: program_.getUniformLocation("light.specColor")
         }
@@ -54,9 +56,10 @@ function ShaderManager([gl]) {
 
 
   this.setMaterialParam = function
-      (id, diffColor, emissColor, specColor, shininess, opacity) {
+      (id, ambColor, diffColor, emissColor, specColor, shininess, opacity) {
     program_.start();
     program_.setUniformui(material_.id, id);
+    program_.setUniformVector3f(material_.ambColor, ambColor);
     program_.setUniformVector3f(material_.diffColor, diffColor);
     program_.setUniformVector3f(material_.emissColor, emissColor);
     program_.setUniformVector3f(material_.specColor, specColor);
@@ -67,9 +70,10 @@ function ShaderManager([gl]) {
 
 
 
-  this.setLightParam = function(eDirection, diffColor, specColor) {
+  this.setLightParam = function(eDirection, ambColor, diffColor, specColor) {
     program_.start();
     program_.setUniformVector3f(light_.eDirection, eDirection);
+    program_.setUniformVector3f(light_.ambColor, ambColor);
     program_.setUniformVector3f(light_.diffColor, diffColor);
     program_.setUniformVector3f(light_.specColor, specColor);
     program_.stop();
