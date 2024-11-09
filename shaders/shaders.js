@@ -42,13 +42,13 @@ const shaders = {
 
     struct MATERIAL {
       uint id;
-      vec3 diffColor, emissColor, specColor;
+      vec3 ambColor, diffColor, emissColor, specColor;
       float shininess, opacity;
     };
 
     struct LIGHT {
       vec3 eDirection;
-      vec3 diffColor, specColor;
+      vec3 ambColor, diffColor, specColor;
     };
 
     in vec2 fTexCoord;
@@ -99,8 +99,8 @@ const shaders = {
       float NdotL, powNdotH;
       computeLightParam(tNormal, NdotL, powNdotH);
 
-      color = vec4
-          (light.diffColor * material.diffColor * NdotL, material.opacity);
+      color = vec4(light.ambColor * material.ambColor +
+          light.diffColor * material.diffColor * NdotL, material.opacity);
 
       if (material.id == EARTH) {
         emissColor = material.emissColor;
