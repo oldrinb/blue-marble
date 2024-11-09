@@ -2,7 +2,7 @@
 
 /**
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 6, 2024
+ * Last modified: Nov 8, 2024
  **/
 
 * {
@@ -43,6 +43,11 @@ div.left {
   max-width: 251px;
   min-width: 251px;
   width: 251px;
+}
+
+div.right {
+  height: 90vh;
+  width: 70vw;
 }
 
 div.top,
