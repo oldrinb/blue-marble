@@ -2,21 +2,21 @@
 
 /**
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 7, 2024
+ * Last modified: Nov 9, 2024
  **/
-
+ 
 const IMAGE_PATH = "../common-files/models/earth/";
 
-// model, material(diffuse color, emissive color, specular color, shininess,
+// model, material(ambient, diffuse, emissive, specular, shininess,
 // opacity), diffuse texture, emissive texture, specular + normal texture
-const EARTH = [models.earth,
-    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [0.2, 0.2, 0.2], 4.0, 1.0],
-    ["land_ocean_ice_", "jpg"], ["land_ocean_ice_lights_", "jpg"],
-    ["land_ocean_ice_specular-normal_", "png"]];
+const EARTH = [models.earth, [[0.3, 0.3, 0.3], [1.0, 1.0, 1.0],
+              [1.0, 1.0, 1.0], [0.2, 0.2, 0.2], 4.0, 1.0],
+              ["land_ocean_ice_", "jpg"], ["land_ocean_ice_lights_", "jpg"],
+              ["land_ocean_ice_specular-normal_", "png"]];
 
-const CLOUDS = [models.earth,
-    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [0.0, 0.0, 0.0], 0.0, 1.0],
-    ["cloud_combined_", "jpg"], null, null];
+const CLOUDS = [models.earth, [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0],
+               [1.0, 1.0, 1.0], [0.0, 0.0, 0.0], 0.0, 1.0],
+               ["cloud_combined_", "jpg"], null, null];
 
 // id, model, scale, rotation axis, rotation speed, model matrix
 const SCENE = [[0, EARTH, [1.0, 1.0, 1.0], [0, 1, 0], 0.00003,
@@ -24,53 +24,54 @@ const SCENE = [[0, EARTH, [1.0, 1.0, 1.0], [0, 1, 0], 0.00003,
                [1, CLOUDS, [1.03, 1.03, 1.03], [0, 1, 0], 0.00005,
                 glMatrix.mat4.create()]];
 
-// direction, diffuse color, specular color
-const LIGHT = [[-0.82, 0.0, -0.56], [1.0, 1.0, 1.0], [1.0, 0.941, 0.898]];
+// direction, ambient, diffuse, specular
+const LIGHT = [[-0.82, 0.0, -0.56], [0.3, 0.3, 0.3], [1.0, 1.0, 1.0],
+               [1.0, 0.941, 0.898]];
 
 // position, lookAt, nearPlane, farPlane
 const CAMERA = [[0.0, 0.0, 3.0], [0.0, 0.0, 0.0], 0.1, 15.0];
 
-const MAX_VERT_ANGLE = 45, MIN_HORIZ_ANGLE = 0, MAX_HORIZ_ANGLE = 360;
+const MAX_VERT_ANGLE = 60 / 180 * Math.PI;
 const DEFAULT_FIELD_OF_VIEW = 45;
 const NORMAL_MAPPING = true;
-const ROTATION_ANGLE = -90;
+const MODEL_ROT_ANGLE = -110 / 180 * Math.PI;
 
 let canvas_, gl_, lose_context_ext_, frame_, width_, height_;
 let shaderManager_, earth_, clouds_;
 let earthTextureDay_, earthTextureNight_, earthSpecNormTexture_,
     cloudsTexture_, texSize_;
-let camera_, cameraTranslation_, cameraRotation_, fieldOfView_;
+let camera_, cameraTranslation_, cameraRotation_;
+let fieldOfView_, lastFieldOfView_, fieldOfViewStep_;
 let lightDirection_, normalMapping_;
 
 let inputCamTransZ_, inputCamRotX_, inputCamRotY_, fovInfo_, fovInfoValue_;
 let inputLightRotY_, normalMappingToggle_;
 let textureInfo_, textureInfoValue_, fpsInfo_, fpsInfoValue_, messageInfo_;
 
-let isMouseButtonPressed_, lastCursorPos_, cursorAngle_, mouseCursorSpeed_;
-let timeout_, isError_;
+let isMouseButtonPressed_, isTouchScreen_;
+let lastRotAngle_, vertRotAngle_, lastVertRotAngle_;
+let lastCursorPos_, lastTapDistance_, doubleTapChangeSpeed_;
+let timeout_, isError_, isTextureLoaded_;
 
 
 
 function init() {
   cameraTranslation_ = [0.0, 0.0, 0.0]; cameraRotation_ = [0.0, 0.0];
-  fieldOfView_ = DEFAULT_FIELD_OF_VIEW;
+  fieldOfView_ = lastFieldOfView_ = DEFAULT_FIELD_OF_VIEW;
+  fieldOfViewStep_ = 5;
   lightDirection_ = normalize(LIGHT[0]);
   texSize_ = [0, 0];
   normalMapping_ = NORMAL_MAPPING;
-  isMouseButtonPressed_ = false;
-  lastCursorPos_ = [0.0, 0.0];
-  cursorAngle_ = [0.0, 0.0];
-  mouseCursorSpeed_ = 0.25;
+  isMouseButtonPressed_ = isTouchScreen_ = false;
+  lastCursorPos_ = lastTapDistance_ = null;
+  doubleTapChangeSpeed_ = 50;
+  lastRotAngle_ = [0.0, 0.0];
+  vertRotAngle_ = lastVertRotAngle_ = 0.0;  
   isError_ = false;
-
-  for (let i = 0; i < SCENE.length; i++) {
-    glMatrix.mat4.scale(SCENE[i][5], SCENE[i][5], SCENE[i][2]);
-    glMatrix.mat4.rotate
-        (SCENE[i][5], SCENE[i][5], ROTATION_ANGLE, [0.0, 1.0, 0.0]);
-  }
+  isTextureLoaded_ = false;
 
   let page = document.getElementsByClassName("main")[0];
-  page.className = "";
+  page.style.display = "block";
   enableInputControls(false);
 
   inputCamTransZ_ = document.getElementById("cam-trans-z");
@@ -156,9 +157,10 @@ function init() {
           CAMERA[0][2]), glMatrix.vec3.fromValues(CAMERA[1][0], CAMERA[1][1],
           CAMERA[1][2]), fieldOfView_, CAMERA[2], CAMERA[3]);
       fovInfo_.value = fieldOfView_;
+      updateModelMatrix();
 
       lightDirEye = computeLightInEyeSpace(lightDirection_);
-      shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2]);
+      shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2], LIGHT[3]);
       shaderManager_.setNormalMapping(normalMapping_);
 
       gl_.enable(gl_.CULL_FACE);
@@ -178,9 +180,9 @@ function init() {
 
       if (!isError_) {
         enableInputControls(true);
+        isTextureLoaded_ = true;
         textureInfo_.value = texSize_[0] + " x " + texSize_[1];
         messageInfo_.innerHTML = "";
-
         addEventListeners();
 
         frame_ = requestAnimationFrame(render);
@@ -240,8 +242,7 @@ function clean() {
 
 
 function resize() {
-  if (textureInfo_.value == textureInfoValue_) return; 
-  
+  if (! isTextureLoaded_) return;
   
   if (typeof timeout_ !== "undefined") {
     clearTimeout(timeout_);
@@ -288,12 +289,9 @@ function reset() {
   normalMappingToggle_.checked = normalMapping_;
   normalMappingToggle_.dispatchEvent(new Event("input"));
 
-  let modelMatrix = glMatrix.mat4.create();
-  for (let i = 0; i < SCENE.length; i++) {
-    glMatrix.mat4.scale(modelMatrix, modelMatrix, SCENE[i][2]);
-    glMatrix.mat4.rotate
-        (SCENE[i][5], modelMatrix, ROTATION_ANGLE, [0.0, 1.0, 0.0]);
-  }
+  util.resetRotationAngle();
+  vertRotAngle_ = lastVertRotAngle_ = 0.0;  
+  updateModelMatrix();
 }
 
 
@@ -311,8 +309,9 @@ function translateCamera(event) {
     cameraTranslation_[2] = value;
   }
 
+  updateModelMatrix();
   lightDirEye = computeLightInEyeSpace(lightDirection_);
-  shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2]);
+  shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2], LIGHT[3]);
 }
 
 
@@ -337,24 +336,23 @@ function rotateCamera(event) {
     cameraRotation_[1] = value;
   }
 
+  updateModelMatrix();
   lightDirEye = computeLightInEyeSpace(lightDirection_);
-  shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2]);
+  shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2], LIGHT[3]);
 }
 
 
 
 function changeFieldOfView(event) {
-  let delta = (event.deltaY > 0) ? 5 : -5;
+  let delta = (event.deltaY > 0) ? fieldOfViewStep_ : -fieldOfViewStep_;
   fieldOfView_ += delta;
-  if (fieldOfView_ < 0) fieldOfView_ = 0;
+  if (fieldOfView_ < camera_.getMinFieldOfView())
+    fieldOfView_ = camera_.getMinFieldOfView();
+  else if (fieldOfView_ > camera_.getMaxFieldOfView())
+    fieldOfView_ = camera_.getMaxFieldOfView();
 
-  try {
-    camera_.setFieldOfView(fieldOfView_);
-    fovInfo_.value = fieldOfView_;
-  }
-  catch(error) {
-    fieldOfView_ -= delta;
-  }
+  camera_.setFieldOfView(fieldOfView_);
+  fovInfo_.value = fieldOfView_;
 }
 
 
@@ -365,7 +363,7 @@ function rotateLight(event) {
   lightDirection_ = [Math.cos(angle), 0, -Math.sin(angle)];
 
   let lightDirEye = computeLightInEyeSpace(lightDirection_);
-  shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2]);
+  shaderManager_.setLightParam(lightDirEye, LIGHT[1], LIGHT[2], LIGHT[3]);
 }
 
 
@@ -379,48 +377,94 @@ function normalMapping(event) {
 
 function mouseButtonCallback(event) {
   isMouseButtonPressed_ = (event.type == "mousedown" && event.button == 0);
+
+  if (isMouseButtonPressed_ && !lastCursorPos_) {
+    lastCursorPos_ = [event.clientX, event.clientY];
+    lastRotAngle_= [util.getLastRotationAngle(0), util.getLastRotationAngle(1)];
+    lastVertRotAngle_ = vertRotAngle_;
+  }
+  else lastCursorPos_ = null;
+}
+
+
+
+function touchScreenCallback(event) {
+  isTouchScreen_ = (event.type == "touchstart");
+
+  if (isTouchScreen_ && event.touches.length == 1 && !lastCursorPos_) {
+    lastCursorPos_ = [event.touches[0].clientX, event.touches[0].clientY];
+    lastRotAngle_ =
+        [util.getLastRotationAngle(0), util.getLastRotationAngle(1)];
+    lastVertRotAngle_ = vertRotAngle_;
+  }
+  else lastCursorPos_ = null;
+
+  if (isTouchScreen_ && event.touches.length == 2 && !lastTapDistance_) {
+    lastTapDistance_ = Math.sqrt
+        (Math.pow(event.touches[0].clientX - event.touches[1].clientX, 2) +
+         Math.pow(event.touches[0].clientY - event.touches[1].clientY, 2));
+    lastFieldOfView_ = fieldOfView_;
+  }
+  else lastTapDistance_ = null;
+
+  event.preventDefault();
 }
 
 
 
 function cursorPositionCallback(event) {
-  if (isMouseButtonPressed_ && event.type == "mousemove") {
-    let deltaAngleX = mouseCursorSpeed_ * (event.clientY - lastCursorPos_[1]);
-    let deltaAngleY = mouseCursorSpeed_ * (event.clientX - lastCursorPos_[0]);
+  let deltaX, deltaY, deltaDist;
 
-    let result = cursorAngle_[0] + deltaAngleX;
-    if (Math.abs(result) < MAX_VERT_ANGLE) cursorAngle_[0] = result;
+  if (isMouseButtonPressed_ && event.type == "mousemove" && lastCursorPos_) {
+    deltaX = event.clientX - lastCursorPos_[0];
+    deltaY = event.clientY - lastCursorPos_[1];
+  }
 
-    cursorAngle_[1] += deltaAngleY;
-    if (cursorAngle_[1] >= MAX_HORIZ_ANGLE) cursorAngle_[1] -= MAX_HORIZ_ANGLE;
-    else if (cursorAngle_[1] < MIN_HORIZ_ANGLE)
-      cursorAngle_[1] += MAX_HORIZ_ANGLE;
-
-    let invCameraMat = glMatrix.mat3.create();
-    glMatrix.mat3.fromMat4(invCameraMat, camera_.getViewMatrix());
-    glMatrix.mat3.invert(invCameraMat, invCameraMat);
-
-    let xAxis = glMatrix.vec3.fromValues(1.0, 0.0, 0.0);
-    glMatrix.mat3.multiply(xAxis, invCameraMat, xAxis);
-    let yAxis = glMatrix.vec3.fromValues(0.0, 1.0, 0.0);
-
-    for (let i = 0; i < SCENE.length; i++) {
-      let scale = SCENE[i][2];
-      let modelMatrix = glMatrix.mat4.create()
-      glMatrix.mat4.scale(modelMatrix, modelMatrix, scale);
-
-      glMatrix.mat4.rotate
-          (modelMatrix, modelMatrix, cursorAngle_[0] / 180.0 * Math.PI, xAxis);
-      glMatrix.mat4.rotate
-          (modelMatrix, modelMatrix, cursorAngle_[1] / 180.0 * Math.PI, yAxis);
-      glMatrix.mat4.rotate
-          (modelMatrix, modelMatrix, ROTATION_ANGLE, [0.0, 1.0, 0.0]);
-
-      SCENE[i][5] = modelMatrix;
+  else if (isTouchScreen_ && event.type == "touchmove") {
+    if (event.touches.length == 1 && lastCursorPos_) {
+      deltaX = event.touches[0].clientX - lastCursorPos_[0];
+      deltaY = event.touches[0].clientY - lastCursorPos_[1];
+    }
+    else if (event.touches.length == 2 && lastTapDistance_) {
+      let tapDistance = Math.sqrt
+          (Math.pow(event.touches[0].clientX - event.touches[1].clientX, 2) +
+           Math.pow(event.touches[0].clientY - event.touches[1].clientY, 2));
+      deltaDist = tapDistance - lastTapDistance_;
     }
   }
 
-  lastCursorPos_ = [event.clientX, event.clientY];
+  if (typeof(deltaX) != "undefined" && typeof(deltaY) != "undefined") {
+    let deltaAngleX = deltaX / width_ * Math.PI;
+    let deltaAngleY = deltaY / height_ * Math.PI;
+    util.setRotationAngle(0, lastRotAngle_[0] + deltaAngleX);
+    util.setRotationAngle(1, lastRotAngle_[1] + deltaAngleX);
+
+    vertRotAngle_ = lastVertRotAngle_ + deltaAngleY;
+    if (vertRotAngle_ > MAX_VERT_ANGLE) vertRotAngle_ = MAX_VERT_ANGLE;
+    else if (vertRotAngle_ < -MAX_VERT_ANGLE) vertRotAngle_ = -MAX_VERT_ANGLE;
+
+    updateModelMatrix();
+  }
+
+  else if (typeof(deltaDist) != "undefined") {
+    let deltaAngle = deltaDist /
+        Math.max(width_, height_) *  doubleTapChangeSpeed_;
+
+    fieldOfView_ = lastFieldOfView_ - deltaAngle;    
+    let remainder = fieldOfView_ % fieldOfViewStep_;    
+    if (remainder >= fieldOfViewStep_ / 2.0)
+      fieldOfView_ += fieldOfViewStep_ - remainder;
+    else if (remainder > 0 && remainder < fieldOfViewStep_ / 2.0)
+      fieldOfView_ -= remainder;
+
+    if (fieldOfView_ < camera_.getMinFieldOfView())
+      fieldOfView_ = camera_.getMinFieldOfView();
+    else if (fieldOfView_ > camera_.getMaxFieldOfView())
+      fieldOfView_ = camera_.getMaxFieldOfView();
+
+    camera_.setFieldOfView(fieldOfView_);
+    fovInfo_.value = fieldOfView_;
+  }
 }
 
 
@@ -453,13 +497,14 @@ function renderMesh(m, now) {
   let rotationSpeed = m[4];
   let modelMatrix = glMatrix.mat4.clone(m[5]);
 
-  let diffColor = material[0];
-  let emissColor = material[1];
-  let specColor = material[2];
-  let shininess = material[3];
-  let opacity = material[4];
+  let ambColor = material[0];
+  let diffColor = material[1];
+  let emissColor = material[2];
+  let specColor = material[3];
+  let shininess = material[4];
+  let opacity = material[5];
   shaderManager_.setMaterialParam
-      (id, diffColor, emissColor, specColor, shininess, opacity);
+      (id, ambColor, diffColor, emissColor, specColor, shininess, opacity);
 
   let angle = util.getRotationAngle(id, now, rotationSpeed);
   glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, rotationAxis);
@@ -474,7 +519,7 @@ function renderMesh(m, now) {
   glMatrix.mat4.transpose(normalMatrix, normalMatrix);
 
   shaderManager_.render(mesh, diffTexture, emissTexture, specNormTexture,
-    modelViewMatrix, modelViewProjMatrix, normalMatrix);
+      modelViewMatrix, modelViewProjMatrix, normalMatrix);
 }
 
 
@@ -520,6 +565,27 @@ function computeLightInEyeSpace(lightDir) {
 
 
 
+function updateModelMatrix() {
+    let invCameraMat = glMatrix.mat3.create();
+    glMatrix.mat3.fromMat4(invCameraMat, camera_.getViewMatrix());
+    glMatrix.mat3.invert(invCameraMat, invCameraMat);
+
+    let xAxis = glMatrix.vec3.fromValues(1.0, 0.0, 0.0);
+    glMatrix.mat3.multiply(xAxis, invCameraMat, xAxis);
+
+  for (let i = 0; i < SCENE.length; i++) {
+      let scale = SCENE[i][2];
+      let modelMatrix = glMatrix.mat4.create()
+      glMatrix.mat4.scale(modelMatrix, modelMatrix, scale);
+      glMatrix.mat4.rotate(modelMatrix, modelMatrix, vertRotAngle_, xAxis);
+      glMatrix.mat4.rotate
+          (modelMatrix, modelMatrix, MODEL_ROT_ANGLE, [0.0, 1.0, 0.0]);
+      SCENE[i][5] = modelMatrix;
+  }
+}
+
+
+
 function normalize([vx, vy, vz]) {
   let length = Math.sqrt(Math.pow(vx, 2) + Math.pow(vy, 2) + Math.pow(vz, 2));
   return [vx / length, vy / length, vz / length];
@@ -547,12 +613,25 @@ function handleException(errorCode, description) {
 
 
 function addEventListeners() {
-  canvas_.addEventListener("wheel", changeFieldOfView);
-  canvas_.addEventListener('mouseout', mouseButtonCallback);
+  canvas_.addEventListener("wheel", function(e) {changeFieldOfView(e);},
+      {passive: true});
+
   canvas_.addEventListener('mousedown', mouseButtonCallback);
   canvas_.addEventListener('mouseup', mouseButtonCallback);
+  canvas_.addEventListener('mouseout', mouseButtonCallback);
   canvas_.addEventListener('mousemove', cursorPositionCallback);
   canvas_.addEventListener('contextmenu', (e) => {e.preventDefault();});
+
+  canvas_.addEventListener('touchstart', function(e) {touchScreenCallback(e);},
+      {passive: false});
+  canvas_.addEventListener('touchend', touchScreenCallback);
+  canvas_.addEventListener('touchcancel', touchScreenCallback);
+  canvas_.addEventListener('touchmove', function(e){cursorPositionCallback(e);},
+      {passive: true});
+
+  document.addEventListener('touchstart', function(e) { }, {
+    passive: false
+  });
 }
 
 
@@ -562,10 +641,16 @@ function removeEventListeners() {
   document.body.setAttribute("onresize", null);
 
   canvas_.removeEventListener("wheel", changeFieldOfView);
-  canvas_.removeEventListener('mouseout', mouseButtonCallback);
+
   canvas_.removeEventListener('mousedown', mouseButtonCallback);
   canvas_.removeEventListener('mouseup', mouseButtonCallback);
+  canvas_.removeEventListener('mouseout', mouseButtonCallback);
   canvas_.removeEventListener('mousemove', cursorPositionCallback);
+
+  canvas_.removeEventListener('touchstart', touchScreenCallback);
+  canvas_.removeEventListener('touchend', touchScreenCallback);
+  canvas_.removeEventListener('touchcancel', touchScreenCallback);
+  canvas_.removeEventListener('touchmove', cursorPositionCallback);
 }
 
 
