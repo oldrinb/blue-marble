@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <title>Blue Marble</title>
-    <link rel="icon" type="image/x-icon" href="../common-files/icon/gl.ico">
+    <link rel="icon" type="image/x-icon" href="../common-files/icons/ob.ico">
     <link rel="stylesheet" href="style.css">
     <meta charset="utf-8">
     <meta name="author" content="Oldrin Bărbulescu">
@@ -26,8 +26,7 @@
 
   <body onload="init()" onbeforeunload="clean()" onresize="resize()">
     <noscript>
-      <h1>Computer Graphics</h1>
-      <h2>Blue Marble</h2>
+      <h1>The Blue Marble</h1>
       <p class="error">
         This site requires Javascript to work, please enable Javascript in your
             browser or use a browser with Javascript support.
@@ -36,11 +35,17 @@
 
     <div class="main">
       <div class="left">
-        <h1>Computer Graphics</h1>
-        <h2>Blue Marble</h2>
+        <h1>The Blue Marble</h1>
+
+        <div class="intro">
+          <p>Real-time rendering of Earth using realistic texture, normal
+                mapping and <span class="nowrap">Blinn-Phong</span> reflection
+                model.
+          </p>
+        </div>
 
         <div class="top">
-          <div><h3>Parameters:</h3></div>
+          <div><h2>Parameters:</h2></div>
 
           <div>
             <!-- Reset button -->
@@ -153,6 +158,34 @@
         <div class="canvas">
           <!-- Canvas -->
           <canvas id="gl-canvas"></canvas>
+        </div>
+
+        <div class="ref">
+          <p class="title">References:</p>
+          <ul>
+            <li>[1] Randi J. Rost, Bill Licea-Kane. OpenGL Shading Language,
+                    Third Edition, Addison-Wesley Professional, 2009, p. 300-309
+            </li>
+            <li>[2] John Kessenich, Graham Sellers, Dave Shreiner. OpenGL
+                    Programming Guide, Ninth Edition. Addison-Wesley
+                    Professional, 2017, p. 456 - 486, 540 - 550
+            </li>
+            <li>
+              <a href="https://earthobservatory.nasa.gov/features/BlueMarble/BlueMarble_2002.php"
+                  target="_blank">Images</a> used for this project were
+                  obtained from the NASA Web site and were created by Reto
+                  St&ouml;ckli of the NASA Goddard Space Flight Center. The
+                  normal map is computed from a
+                  <a href="https://www.visibleearth.nasa.gov/images/73934/topography"
+                  target="_blank">topographic map</a> created by Jesse Allen,
+                  NASA's Earth Observatory.
+            </li>
+          </ul>
+        </div>
+
+        <div class="copy">
+          <hr>
+          <p>&copy; 2024 Oldrin B&#259;rbulescu. All rights reserved.</p>
         </div>
       </div>
     </div>
