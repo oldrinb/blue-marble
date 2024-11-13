@@ -2,7 +2,7 @@
 
 /**
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 8, 2024
+ * Last modified: Nov 13 2024
  **/
 
 * {
@@ -42,14 +42,15 @@ div.right {
 div.left {
   max-width: 251px;
   min-width: 251px;
-  width: 251px;
 }
 
 div.right {
-  height: 90vh;
-  width: 70vw;
+  margin-left: 10px;
+  max-width: 70vw;
+  min-width: 512px;
 }
 
+div.intro,
 div.top,
 div.middle > div.middle,
 div.bottom > div.bottom,
@@ -72,23 +73,38 @@ div.top > div:nth-child(2) {
 }
 
 div.bottom > div.bottom {
-  padding-left: 6px;
+  padding-left: 12px;
 }
 
 div.control {
   background-color: #dae2ff;
   border: 1px solid #aaa;
   border-radius: 3px;
+  box-shadow: 2px 2px 10px #aaa;
   color: inherit;
-  width: 249px;
+  max-width: 249px;
+  min-width: 249px;
+  padding-bottom: 5px;
+  padding-top: 5px;
 }
 
 div.control > div {
-  padding: 4px 5px 4px 5px;
+  padding: 4px 5px 4px 11px;
 }
 
 div.hidden {
   margin-bottom: 10px;
+}
+
+div.canvas {
+  box-shadow: 2px 2px 10px #aaa;
+  min-height: 512px;
+  max-height: 85vh;
+}
+
+div.ref,
+div.copy {
+  margin-top: 10px;
 }
 
 
@@ -145,45 +161,44 @@ div.hidden {
   }
 
   div.hidden {
-    margin-bottom: 21px;
+    margin-bottom: 11px;
+  }
+
+  div.canvas {
+    max-height: 512px;
   }
 }
 
 
 h1,
-h2,
-h3 {
+h2 {
   font-weight: bold;
   text-align: center;
+  text-shadow: 2px 2px 5px #aaa;
 }
 
 h1 {
-  font-size: 1.6em;
+  font-size: 1.3em;
+  margin-bottom: 15px;
 }
 
 h2 {
-  font-size: 1.3em;
-  margin-bottom: 15px;
-  margin-top: 15px;
-}
-
-h3 {
-  margin-left: 6px;
+  margin-left: 12px;
   text-align: left;
 }
 
 button,
 input,
 label,
-p,
-span {
+li,
+p {
   font-size: 0.85em;
 }
 
 button,
 input,
 label,
-span {
+label.toggle span {
   display: inline-block;
 }
 
@@ -191,9 +206,10 @@ button {
   background-color: #efefef;
   border: 1px solid #aaa;
   border-radius: 3px;
+  box-shadow: 2px 2px 10px #aaa;
   color: inherit;
   height: 20px;
-  margin-right: 17px;
+  margin-right: 11px;
   text-align: center;
   width: 65px;
 }
@@ -220,6 +236,7 @@ button.disabled:active {
 
 input[type="text"] {
   text-align: right;
+  width: 110px;
 }
 
 input[type="text"].disabled,
@@ -302,7 +319,7 @@ div.control label:first-child {
 }
 
 div.bottom label:first-child {
-  width: 60px;
+  width: 90px;
 }
 
 label[for="normal-mapping"] {
@@ -397,9 +414,16 @@ input.disabled + span:hover:before {
 }
 
 p {
+  line-height: 140%;
   text-align: justify;
-  text-indent: 6px;
+  text-indent: 12px;
   white-space: normal;
+}
+
+p.title {
+  font-weight: bold;
+  margin-bottom: 5px;
+  text-shadow: 2px 2px 5px #aaa;
 }
 
 p.info {
@@ -412,23 +436,54 @@ p.error {
   color: red;
 }
 
+span.nowrap {
+  white-space: nowrap;
+}
+
+ul {
+  list-style-type:none;
+}
+
+li {
+  margin-bottom: 3px;
+  text-align: justify;
+  white-space: normal;
+}
+
+a {
+  background-color:inherit;
+  color: #4a6dff;
+  text-decoration:none;
+  vertical-align: top;
+}
+
+a:hover {
+  text-decoration:underline;
+}
+
 canvas {
+  box-shadow: 2px 2px 10px #aaa;
   cursor: grab;
   display: none;
-  height: 90vh;
-  margin-left: 10px;
-  max-height: 90vh;
+  height: 85vh;
+  max-height: 85vh;
   max-width: 70vw;
   min-height: 512px;
   min-width: 512px;
   width: 70vw;
 }
 
+hr {
+  border-top: 1px solid #aaa;
+  box-shadow: 2px 2px 10px #aaa;
+  height: 1px;
+  margin-bottom: 5px;
+}
+
 
 @media screen and (max-width: 800px) {
   canvas {
     height: 512px;
-    margin-left: 0;
     max-height: 512px;
     max-width: 512px;
     width: 512px;
