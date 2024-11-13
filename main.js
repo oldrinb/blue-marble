@@ -2,14 +2,14 @@
 
 /**
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 9, 2024
+ * Last modified: Nov 11, 2024
  **/
  
 const IMAGE_PATH = "../common-files/models/earth/";
 
 // model, material(ambient, diffuse, emissive, specular, shininess,
 // opacity), diffuse texture, emissive texture, specular + normal texture
-const EARTH = [models.earth, [[0.3, 0.3, 0.3], [1.0, 1.0, 1.0],
+const EARTH = [models.earth, [[0.3, 0.3, 0.3], [0.7, 0.7, 0.7],
               [1.0, 1.0, 1.0], [0.2, 0.2, 0.2], 4.0, 1.0],
               ["land_ocean_ice_", "jpg"], ["land_ocean_ice_lights_", "jpg"],
               ["land_ocean_ice_specular-normal_", "png"]];
@@ -182,7 +182,7 @@ function init() {
         enableInputControls(true);
         isTextureLoaded_ = true;
         textureInfo_.value = texSize_[0] + " x " + texSize_[1];
-        messageInfo_.innerHTML = "";
+        messageInfo_.innerHTML = "&nbsp;";
         addEventListeners();
 
         frame_ = requestAnimationFrame(render);
