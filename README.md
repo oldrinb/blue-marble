@@ -11,5 +11,7 @@ Project: oldrinb.dev/projects/blue-marble
 References:
 
 [1] Randi J. Rost, Bill Licea-Kane. OpenGL Shading Language, Third Edition, Addison-Wesley Professional, p. 300-309, 2009
+
 [2] John Kessenich, Graham Sellers, Dave Shreiner. OpenGL Programming Guide, Ninth Edition. Addison-Wesley Professional, p. 456 - 486, 540 - 550, 2017
+
 Images used for this project were obtained from the NASA website and were created by Reto Stöckli of the NASA Goddard Space Flight Center. The normal map is computed from a topographic map created by Jesse Allen, NASA's Earth Observatory.
