@@ -2,7 +2,7 @@
 
 /**
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 13 2024
+ * Last modified: Nov 19, 2024
  **/
 
 * {
@@ -453,11 +453,27 @@ li {
 a {
   background-color:inherit;
   color: #4a6dff;
-  text-decoration:none;
+  letter-spacing: 2px;
   vertical-align: top;
 }
 
-a:hover {
+a,
+a span {
+  white-space: nowrap;
+}
+
+a span {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+a,
+a.return:hover {
+  text-decoration:none;
+}
+
+a:hover,
+a.return:hover span {
   text-decoration:underline;
 }
 
