@@ -2,10 +2,10 @@
 
 /**
  * Author: Oldrin Bărbulescu
- * Last modified: Nov 11, 2024
+ * Last modified: Dec 3, 2024
  **/
- 
-const IMAGE_PATH = "../common-files/models/earth/";
+
+const IMAGE_PATH = "model/";
 
 // model, material(ambient, diffuse, emissive, specular, shininess,
 // opacity), diffuse texture, emissive texture, specular + normal texture
@@ -35,6 +35,11 @@ const MAX_VERT_ANGLE = 60 / 180 * Math.PI;
 const DEFAULT_FIELD_OF_VIEW = 45;
 const NORMAL_MAPPING = true;
 const MODEL_ROT_ANGLE = -110 / 180 * Math.PI;
+
+const PARENT_LINK = "<a href='../' class='return'>" +
+            "[ <span>Return to the main page</span> ]</a>";
+
+
 
 let canvas_, gl_, lose_context_ext_, frame_, width_, height_;
 let shaderManager_, earth_, clouds_;
@@ -182,7 +187,7 @@ function init() {
         enableInputControls(true);
         isTextureLoaded_ = true;
         textureInfo_.value = texSize_[0] + " x " + texSize_[1];
-        messageInfo_.innerHTML = "&nbsp;";
+        messageInfo_.innerHTML = PARENT_LINK;
         addEventListeners();
 
         frame_ = requestAnimationFrame(render);
@@ -192,6 +197,12 @@ function init() {
     .catch (function(error) {
       handleException("init", error);
     });
+}
+
+
+
+function refresh(event) {
+  if (event.persisted) window.location.reload();
 }
 
 
@@ -639,6 +650,8 @@ function addEventListeners() {
 function removeEventListeners() {
   document.body.removeAttribute("onresize");
   document.body.setAttribute("onresize", null);
+  document.body.removeAttribute("onpageshow");
+  document.body.setAttribute("onpageshow", null);
 
   canvas_.removeEventListener("wheel", changeFieldOfView);
 
